@@ -9,13 +9,12 @@
     const playerNameInput = document.getElementById('player-name');
     const inputGroup = document.querySelector('.input-group');
 
-    // 🛑 АНТИЧІТ: Блокування зуму
     document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
     document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) { e.preventDefault(); } });
 
     const rulesI18n = {
-        en: { title: "scroll of rules:", r1: "hold space or touch to fly", r2: "collect 5 logos to cast blink", r3: "avoid dark rifts", r4: "during blink you are invincible!" },
-        ua: { title: "сувій правил:", r1: "затисни екран щоб летіти", r2: "збери 5 лого для ривка", r3: "уникай темних розломів", r4: "під час ривка ти невразливий!" }
+        en: { title: "rules:", r1: "hold space or touch to fly", r2: "collect 5 logos for superpower", r3: "avoid dark rifts", r4: "during superpower you are invincible!" },
+        ua: { title: "правила:", r1: "затисни екран щоб летіти", r2: "збери 5 лого для суперсили", r3: "уникай темних розломів", r4: "під час суперсили ти невразливий!" }
     };
 
     function setRulesLang(lang) {
@@ -30,7 +29,6 @@
         };
     });
 
-    // Підключення Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyChIHzdaeMU8xpD3aoDUiw1DDez1vobF8E",
       authDomain: "magic-game-1a08d.firebaseapp.com",
@@ -56,14 +54,18 @@
                     row.innerHTML = `<span class="lb-rank">#${index + 1}</span><span class="lb-name">${player.name}</span><span class="lb-score">${Math.floor(player.score)}</span>`;
                     lbList.appendChild(row);
                 });
-            } else if (lbList) { lbList.innerHTML = '<div class="lb-wait">the void is empty</div>'; }
+            } else if (lbList) { 
+                lbList.innerHTML = '<div class="lb-wait">no records yet. be the first!</div>'; 
+            }
+        }, (error) => {
+            console.error("Firebase read error:", error);
+            document.getElementById('lb-list').innerHTML = '<div class="lb-wait">error loading leaderboard</div>';
         });
     }
     loadGlobalBest();
 
     let bestLocalScore = localStorage.getItem('magic_best_score') || 0;
     
-    // Завантаження магічних спрайтів
     const mageImg = new Image(); mageImg.src = 'mage.png';
     const logoImg = new Image(); logoImg.src = 'minilogo.png';
 
@@ -79,7 +81,6 @@
     }
     window.addEventListener('resize', resize); resize();
 
-    // ІГРОВІ ЗМІННІ ТА АНТИЧІТ
     let isLive = false, score = 0, speed = 7.5;
     let energy = 0, feverMode = false, feverTimer = 0;
     let frameCount = 0, shakeTime = 0;
@@ -87,11 +88,11 @@
     let obstacles = [], stones = [], particles = [], stars = [];
     let currentPlayerName = "";
     
-    // 🛑 АНТИЧІТ: Тіньові змінні
     let _shadowScore = 0; 
     let _gameStartTime = 0;
     let _lastFrameTime = 0;
     let _cheatDetected = false;
+    let flashAlpha = 0; // Для спалаху суперсили
 
     function tryStartGame() {
         const name = playerNameInput.value.trim();
@@ -104,8 +105,9 @@
     }
 
     function initGame() {
-        score = 0; _shadowScore = 0; speed = 7.5; energy = 0; feverMode = false; feverTimer = 0; frameCount = 0; _cheatDetected = false;
+        score = 0; _shadowScore = 0; speed = 7.5; energy = 0; feverMode = false; feverTimer = 0; frameCount = 0; _cheatDetected = false; flashAlpha = 0;
         obstacles = []; stones = []; particles = []; stars = [];
+        wrapper.classList.remove('blink-active');
         isThrusting = false; p.vy = 0; resize(); p.y = p.floorY - p.h; 
         scoreEl.innerText = score; energyEl.innerText = `mana: 0/5`; energyEl.classList.remove('fever');
         isLive = true; _gameStartTime = performance.now(); _lastFrameTime = _gameStartTime;
@@ -135,33 +137,31 @@
     }
 
     function createParticles(x, y, color, count, speedMulti = 1) {
-        for (let i = 0; i < count; i++) { particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 15 * speedMulti, vy: (Math.random() - 0.5) * 15 * speedMulti, life: Math.random() * 30 + 10, color: color }); }
+        for (let i = 0; i < count; i++) { particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 15 * speedMulti, vy: (Math.random() - 0.5) * 15 * speedMulti, life: Math.random() * 30 + 10, color: color, size: Math.random() * 4 + 2 }); }
     }
 
     function die(cheated = false) {
-        isLive = false; shakeTime = 20; isThrusting = false;
+        isLive = false; shakeTime = 20; isThrusting = false; wrapper.classList.remove('blink-active');
         
-        // Магічне розчинення (фіолетовий дим)
         for(let i=0; i<80; i++) {
-            let color = Math.random() > 0.5 ? '#8a2be2' : '#b026ff';
-            particles.push({ x: p.x + p.w/2, y: p.y + p.h/2, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: Math.random() * 50 + 20, color: color });
+            let color = Math.random() > 0.5 ? '#8a2be2' : '#ff00ff';
+            particles.push({ x: p.x + p.w/2, y: p.y + p.h/2, vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: Math.random() * 50 + 20, color: color, size: Math.random() * 5 + 2 });
         }
         
         if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
         
-        // 🛑 АНТИЧІТ: Фінальна валідація перед відправкою
         let finalSc = Math.floor(score);
         let timePlayed = (performance.now() - _gameStartTime) / 1000; 
         
-        if (Math.abs(score - _shadowScore) > 2) cheated = true; // Змінили score через консоль
-        if (finalSc > timePlayed * 150) cheated = true; // Набрали очки нереалістично швидко
+        if (Math.abs(score - _shadowScore) > 2) cheated = true; 
+        if (finalSc > timePlayed * 150) cheated = true; 
 
         if (!cheated && finalSc > 0 && currentPlayerName) {
             const userRef = db.ref('leaderboard/' + currentPlayerName);
             userRef.once('value').then((snapshot) => {
                 const oldScore = snapshot.val() ? snapshot.val().score : 0;
                 if (finalSc > oldScore) { userRef.set({ score: finalSc }); }
-            });
+            }).catch(err => console.error("Firebase write error:", err));
             if (finalSc > bestLocalScore) { bestLocalScore = finalSc; localStorage.setItem('magic_best_score', bestLocalScore); }
         }
 
@@ -174,16 +174,13 @@
 
     function loop() {
         let now = performance.now();
-        // 🛑 АНТИЧІТ: Якщо між кадрами пройшло більше 1.5 секунди — гру ставили на паузу в дебагері!
         if (isLive && now - _lastFrameTime > 1500) { _cheatDetected = true; die(true); return; }
         _lastFrameTime = now;
 
         if (shakeTime > 0) { ctx.save(); ctx.translate((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20); shakeTime--; } else { ctx.save(); }
         
-        // Очистка фону
         ctx.clearRect(0, 0, w, h);
 
-        // Гіперпростір: Зірки і лінії
         if (isLive) {
             let starSpawnRate = speed / 30;
             if (Math.random() < starSpawnRate) {
@@ -197,23 +194,28 @@
             if (s.x < 0) stars.splice(i, 1);
         }
 
-        // Темні розломи (межі)
         ctx.fillStyle = "#8a2be2"; ctx.shadowBlur = 15; ctx.shadowColor = "#b026ff"; 
         ctx.fillRect(0, p.ceilY - 5, w, 5); ctx.fillRect(0, p.floorY, w, 5); ctx.shadowBlur = 0;
 
-        if (!isLive && particles.length === 0) { ctx.restore(); return; }
+        if (!isLive && particles.length === 0 && flashAlpha <= 0) { ctx.restore(); return; }
         if (isLive) frameCount++;
 
         if (feverMode) {
             feverTimer--;
-            if (feverTimer % 3 === 0) createParticles(p.x, p.y + p.h/2, '#ff00ff', 1, 0.5); // Слід від ривка
-            if (feverTimer <= 0) { feverMode = false; energy = 0; speed -= 5; energyEl.innerText = `mana: 0/5`; energyEl.classList.remove('fever'); }
+            if (feverTimer % 2 === 0) createParticles(p.x, p.y + p.h/2, '#ff00ff', 1, 0.5); 
+            if (feverTimer <= 0) { 
+                feverMode = false; energy = 0; speed -= 5; 
+                energyEl.innerText = `mana: 0/5`; energyEl.classList.remove('fever'); 
+                wrapper.classList.remove('blink-active');
+            }
         }
 
         if (isLive && frameCount % 240 === 0) {
             if (speed < 25) speed += 1.5; 
-            wrapper.style.boxShadow = "inset 0 0 80px rgba(176, 38, 255, 0.6)";
-            setTimeout(() => wrapper.style.boxShadow = "0 0 40px rgba(176, 38, 255, 0.4)", 300);
+            if(!feverMode) {
+                wrapper.style.boxShadow = "inset 0 0 80px rgba(176, 38, 255, 0.6)";
+                setTimeout(() => wrapper.style.boxShadow = "0 0 40px rgba(176, 38, 255, 0.4)", 300);
+            }
         }
 
         if (isLive && frameCount % Math.max(20, 90 - Math.floor(speed*1.5)) === 0) spawn();
@@ -224,11 +226,10 @@
             if (p.y + p.h > p.floorY) { p.y = p.floorY - p.h; p.vy = 0; } else if (p.y < p.ceilY) { p.y = p.ceilY; p.vy = 0; }
             
             let pts = feverMode ? 0.3 : 0.1;
-            score += pts; _shadowScore += pts; // Оновлюємо обидва рахунки
+            score += pts; _shadowScore += pts; 
             scoreEl.innerText = Math.floor(score);
         }
 
-        // Темні магічні розломи (Перешкоди)
         for (let i = obstacles.length - 1; i >= 0; i--) {
             let obs = obstacles[i]; if (isLive) obs.x -= speed;
             ctx.fillStyle = "#1a0033"; ctx.strokeStyle = "#b026ff"; ctx.lineWidth = 3;
@@ -238,7 +239,7 @@
             if (isLive && p.x + 10 < obs.x + obs.w && p.x + p.w - 10 > obs.x && p.y + 10 < obs.y + obs.h && p.y + p.h - 10 > obs.y) {
                 if (feverMode) { 
                     score += 50; _shadowScore += 50; shakeTime = 10; 
-                    createParticles(obs.x + obs.w/2, obs.y + obs.h/2, '#b026ff', 30); 
+                    createParticles(obs.x + obs.w/2, obs.y + obs.h/2, '#ffffff', 40, 2); 
                     if(navigator.vibrate) navigator.vibrate(50); obstacles.splice(i, 1); continue; 
                 } else { die(); }
             }
@@ -254,7 +255,13 @@
                     let bonus = feverMode ? 40 : 15; score += bonus; _shadowScore += bonus;
                     if (!feverMode) {
                         energy++;
-                        if (energy >= 5) { feverMode = true; feverTimer = 300; speed += 5; energyEl.innerText = "✨ BLINK! ✨"; energyEl.classList.add('fever'); } else { energyEl.innerText = `mana: ${energy}/5`; }
+                        if (energy >= 5) { 
+                            // ВІЗУАЛЬНИЙ ВИБУХ
+                            feverMode = true; feverTimer = 300; speed += 5; flashAlpha = 1.0; shakeTime = 15;
+                            energyEl.innerText = "⚡ BLINK READY! ⚡"; energyEl.classList.add('fever'); 
+                            wrapper.classList.add('blink-active');
+                            createParticles(p.x + p.w/2, p.y + p.h/2, "#ffffff", 80, 3);
+                        } else { energyEl.innerText = `mana: ${energy}/5`; }
                     }
                     if(navigator.vibrate) navigator.vibrate(40); createParticles(st.x + st.w/2, st.y + st.h/2, "#00ffff", 15);
                 }
@@ -262,23 +269,30 @@
             if (st.x + st.w < 0) stones.splice(i, 1);
         }
 
-        for (let i = particles.length - 1; i >= 0; i--) { let pt = particles[i]; pt.x += pt.vx; pt.y += pt.vy; pt.life--; ctx.fillStyle = pt.color; ctx.globalAlpha = pt.life / 30; ctx.fillRect(pt.x, pt.y, 4, 4); ctx.globalAlpha = 1; if (pt.life <= 0) particles.splice(i, 1); }
+        for (let i = particles.length - 1; i >= 0; i--) { let pt = particles[i]; pt.x += pt.vx; pt.y += pt.vy; pt.life--; ctx.fillStyle = pt.color; ctx.globalAlpha = Math.max(0, pt.life / 30); ctx.fillRect(pt.x, pt.y, pt.size, pt.size); ctx.globalAlpha = 1; if (pt.life <= 0) particles.splice(i, 1); }
 
         if (isLive && !feverMode) { ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = "#b026ff"; ctx.drawImage(mageImg, p.x, p.y, p.w, p.h); ctx.restore(); }
-        else if (isLive && feverMode) { ctx.save(); ctx.globalAlpha = 0.8; ctx.shadowBlur = 30; ctx.shadowColor = "#ff00ff"; ctx.drawImage(mageImg, p.x, p.y, p.w, p.h); ctx.restore(); }
+        else if (isLive && feverMode) { ctx.save(); ctx.globalAlpha = 0.8; ctx.shadowBlur = 40; ctx.shadowColor = "#ffffff"; ctx.drawImage(mageImg, p.x, p.y, p.w, p.h); ctx.restore(); }
 
-        ctx.restore(); if (isLive || shakeTime > 0 || particles.length > 0) requestAnimationFrame(loop);
+        // Ефект спалаху на весь екран
+        if (flashAlpha > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+            ctx.fillRect(0, 0, w, h);
+            flashAlpha -= 0.05;
+        }
+
+        ctx.restore(); if (isLive || shakeTime > 0 || particles.length > 0 || flashAlpha > 0) requestAnimationFrame(loop);
     }
 
     document.getElementById('btn-start').onclick = tryStartGame;
     document.getElementById('btn-restart').onclick = () => { document.getElementById('game-over').classList.remove('active'); initGame(); };
     document.getElementById('btn-save').onclick = function() {
-        const originalText = this.innerText; this.innerText = "scribing...";
+        const originalText = this.innerText; this.innerText = "downloading...";
         html2canvas(document.getElementById('ss-export'), { backgroundColor: "#0a0014", scale: 2, logging: false }).then(canvas => { const link = document.createElement('a'); link.download = 'magicblock-run-record.png'; link.href = canvas.toDataURL('image/png'); link.click(); this.innerText = "saved!"; setTimeout(() => this.innerText = originalText, 2000); });
     };
 
     document.getElementById('btn-x').onclick = function() {
-        const txt = encodeURIComponent(`casting spells in a challenge from @AleksYastreb! 🔮\nmy mage (${currentPlayerName}) reached: ${Math.floor(score)} points ⚡\ncrafted for the MagicBlock community 💜\n\ntry to beat it: https://alekshawk.github.io/magicblock-run/\n\ni summon: @`);
+        const txt = encodeURIComponent(`casting spells in a challenge from @hawk_tyt! 🔮\nmy mage (${currentPlayerName}) reached: ${Math.floor(score)} points ⚡\ncrafted for the @magicblock community 💜\n\ntry to beat it: https://alekshawk.github.io/magicblock-run/\n\ni summon: @`);
         window.open(`https://twitter.com/intent/tweet?text=${txt}`, '_blank');
     };
 })();
