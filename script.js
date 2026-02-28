@@ -9,8 +9,22 @@
     const playerNameInput = document.getElementById('player-name');
     const inputGroup = document.querySelector('.input-group');
 
+    // 🛑 Блокування зуму (Античіт)
     document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
     document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) { e.preventDefault(); } });
+
+    // 🎵 АУДІО ТА ЗВУКОВІ ЕФЕКТИ
+    const bgMusic = new Audio('https://assets.mixkit.co/music/preview/mixkit-software-developer-851.mp3'); 
+    bgMusic.loop = true; bgMusic.volume = 0.3;
+    
+    const coinSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3'); 
+    coinSfx.volume = 0.5;
+    
+    const powerSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-mighty-mystical-sword-cast-2121.mp3'); 
+    powerSfx.volume = 0.7;
+    
+    const hitSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-with-glass-debris-1701.mp3'); 
+    hitSfx.volume = 0.6;
 
     const rulesI18n = {
         en: { title: "rules:", r1: "hold space or touch to fly", r2: "collect 5 logos for superpower", r3: "avoid dark rifts", r4: "during superpower you are invincible!" },
@@ -29,6 +43,7 @@
         };
     });
 
+    // Підключення Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyChIHzdaeMU8xpD3aoDUiw1DDez1vobF8E",
       authDomain: "magic-game-1a08d.firebaseapp.com",
@@ -92,7 +107,7 @@
     let _gameStartTime = 0;
     let _lastFrameTime = 0;
     let _cheatDetected = false;
-    let flashAlpha = 0; // Для спалаху суперсили
+    let flashAlpha = 0;
 
     function tryStartGame() {
         const name = playerNameInput.value.trim();
@@ -112,6 +127,11 @@
         scoreEl.innerText = score; energyEl.innerText = `mana: 0/5`; energyEl.classList.remove('fever');
         isLive = true; _gameStartTime = performance.now(); _lastFrameTime = _gameStartTime;
         document.getElementById('ss-foot-text').innerText = `can you beat ${currentPlayerName}'s magic?`;
+        
+        // 🎵 Запуск музики
+        bgMusic.currentTime = 0; 
+        bgMusic.play().catch(e => console.log("Браузер блокує автоплей музики", e));
+        
         requestAnimationFrame(loop);
     }
 
@@ -142,6 +162,10 @@
 
     function die(cheated = false) {
         isLive = false; shakeTime = 20; isThrusting = false; wrapper.classList.remove('blink-active');
+        
+        // 🎵 Звук смерті та зупинка музики
+        bgMusic.pause();
+        hitSfx.currentTime = 0; hitSfx.play().catch(()=>{});
         
         for(let i=0; i<80; i++) {
             let color = Math.random() > 0.5 ? '#8a2be2' : '#ff00ff';
@@ -253,14 +277,20 @@
                 if (isLive && p.x < st.x + st.w && p.x + p.w > st.x && p.y < st.y + st.h && p.y + p.h > st.y) {
                     st.collected = true; 
                     let bonus = feverMode ? 40 : 15; score += bonus; _shadowScore += bonus;
+                    
+                    // 🎵 Звук збору
+                    coinSfx.currentTime = 0; coinSfx.play().catch(()=>{});
+
                     if (!feverMode) {
                         energy++;
                         if (energy >= 5) { 
-                            // ВІЗУАЛЬНИЙ ВИБУХ
                             feverMode = true; feverTimer = 300; speed += 5; flashAlpha = 1.0; shakeTime = 15;
                             energyEl.innerText = "⚡ BLINK READY! ⚡"; energyEl.classList.add('fever'); 
                             wrapper.classList.add('blink-active');
                             createParticles(p.x + p.w/2, p.y + p.h/2, "#ffffff", 80, 3);
+                            
+                            // 🎵 Звук магічної суперсили
+                            powerSfx.currentTime = 0; powerSfx.play().catch(()=>{});
                         } else { energyEl.innerText = `mana: ${energy}/5`; }
                     }
                     if(navigator.vibrate) navigator.vibrate(40); createParticles(st.x + st.w/2, st.y + st.h/2, "#00ffff", 15);
@@ -274,7 +304,6 @@
         if (isLive && !feverMode) { ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = "#b026ff"; ctx.drawImage(mageImg, p.x, p.y, p.w, p.h); ctx.restore(); }
         else if (isLive && feverMode) { ctx.save(); ctx.globalAlpha = 0.8; ctx.shadowBlur = 40; ctx.shadowColor = "#ffffff"; ctx.drawImage(mageImg, p.x, p.y, p.w, p.h); ctx.restore(); }
 
-        // Ефект спалаху на весь екран
         if (flashAlpha > 0) {
             ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
             ctx.fillRect(0, 0, w, h);
