@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MagicBlock Run</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="game-wrapper">
+    <canvas id="game-canvas"></canvas>
+    
+    <div id="ui">
+        <div class="score-text">score: <span id="score-val">0</span></div>
+        <div class="energy-text" id="energy-val">mana: 0/5</div>
+    </div>
+
+    <div id="menu" class="overlay active">
+        <div class="leaderboard-box">
+            <h3>global top 5</h3>
+            <div id="lb-list">
+                <div class="lb-wait" id="text-lb-wait">summoning data...</div>
+            </div>
+        </div>
+        
+        <div class="logo-container">
+            <h1 class="magic-title">MagicBlock</h1>
+        </div>
+        
+        <div class="input-group">
+             <input type="text" id="player-name" placeholder="enter mage name" maxlength="12" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9 ]/g,'')">
+             <p class="error-msg" id="input-error-msg">name required!</p>
+        </div>
+       
+        <button id="btn-start">cast spell (start)</button>
+
+        <div class="rules-box">
+            <div class="rules-header">
+                <h3 id="text-rules">scroll of rules:</h3>
+                <div class="lang-switch">
+                    <span class="lang-btn active" data-lang="en">EN</span> | 
+                    <span class="lang-btn" data-lang="ua">UA</span>
+                </div>
+            </div>
+            <ul id="rules-list">
+                <li>hold space or touch to fly</li>
+                <li>collect 5 logos to cast blink</li>
+                <li>avoid dark rifts</li>
+                <li>during blink you are invincible!</li>
+            </ul>
+        </div>
+
+        <div class="credits-footer">
+            crafted by <a href="https://twitter.com/AleksYastreb" target="_blank">hawk</a> for <a href="https://twitter.com/magicblock" target="_blank">MagicBlock</a>
+        </div>
+    </div>
+
+    <div id="game-over" class="overlay">
+        <h1 class="red">dissolved!</h1>
+        <p>final score: <span id="final-score">0</span></p>
+        <div class="buttons">
+            <button id="btn-restart">resurrect</button>
+            <button id="btn-save" class="alt">save scroll</button>
+            <button id="btn-x" class="x-btn">share to x</button>
+        </div>
+    </div>
+</div>
+
+<div id="ss-export" class="ss-export">
+    <h2>i survived MagicBlock Run!</h2>
+    <img src="minilogo.png" class="ss-stone" alt="logo">
+    <div class="ss-box">
+        <p>score</p>
+        <h1 id="ss-score-val">0</h1>
+    </div>
+    <img src="mage.png" class="ss-rocky" alt="mage">
+    <p class="ss-foot" id="ss-foot-text">can you beat my score?</p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
