@@ -12,6 +12,8 @@
 </head>
 <body>
 
+<div class="ambient-background"></div>
+
 <div id="game-wrapper">
     <canvas id="game-canvas"></canvas>
     
@@ -24,24 +26,24 @@
         <div class="leaderboard-box">
             <h3>global top 5</h3>
             <div id="lb-list">
-                <div class="lb-wait" id="text-lb-wait">summoning data...</div>
+                <div class="lb-wait" id="text-lb-wait">loading...</div>
             </div>
         </div>
         
         <div class="logo-container">
-            <h1 class="magic-title">MagicBlock</h1>
+            <img src="logo.png" class="main-logo" alt="MagicBlock Logo">
         </div>
         
         <div class="input-group">
-             <input type="text" id="player-name" placeholder="enter mage name" maxlength="12" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9 ]/g,'')">
+             <input type="text" id="player-name" placeholder="enter nickname" maxlength="12" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9 ]/g,'')">
              <p class="error-msg" id="input-error-msg">name required!</p>
         </div>
        
-        <button id="btn-start">cast spell (start)</button>
+        <button id="btn-start">start</button>
 
         <div class="rules-box">
             <div class="rules-header">
-                <h3 id="text-rules">scroll of rules:</h3>
+                <h3 id="text-rules">rules:</h3>
                 <div class="lang-switch">
                     <span class="lang-btn active" data-lang="en">EN</span> | 
                     <span class="lang-btn" data-lang="ua">UA</span>
@@ -49,23 +51,23 @@
             </div>
             <ul id="rules-list">
                 <li>hold space or touch to fly</li>
-                <li>collect 5 logos to cast blink</li>
+                <li>collect 5 logos for superpower</li>
                 <li>avoid dark rifts</li>
-                <li>during blink you are invincible!</li>
+                <li>during superpower you are invincible!</li>
             </ul>
         </div>
 
         <div class="credits-footer">
-            crafted by <a href="https://twitter.com/AleksYastreb" target="_blank">hawk</a> for <a href="https://twitter.com/magicblock" target="_blank">MagicBlock</a>
+            crafted by <a href="https://x.com/hawk_tyt" target="_blank">hawk</a> for <a href="https://x.com/magicblock" target="_blank">MagicBlock</a>
         </div>
     </div>
 
     <div id="game-over" class="overlay">
-        <h1 class="red">dissolved!</h1>
+        <h1 class="red">game over!</h1>
         <p>final score: <span id="final-score">0</span></p>
         <div class="buttons">
-            <button id="btn-restart">resurrect</button>
-            <button id="btn-save" class="alt">save scroll</button>
+            <button id="btn-restart">restart</button>
+            <button id="btn-save" class="alt">download result</button>
             <button id="btn-x" class="x-btn">share to x</button>
         </div>
     </div>
