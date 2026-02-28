@@ -13,17 +13,17 @@
     document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
     document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) { e.preventDefault(); } });
 
-    // 🎵 АУДІО ТА ЗВУКОВІ ЕФЕКТИ
-    const bgMusic = new Audio('https://assets.mixkit.co/music/preview/mixkit-software-developer-851.mp3'); 
+    // 🎵 АУДІО ТА ЗВУКОВІ ЕФЕКТИ (Надійні посилання Wikimedia)
+    const bgMusic = new Audio('https://upload.wikimedia.org/wikipedia/commons/6/6c/Kevin_MacLeod_-_8bit_Dungeon_Boss.ogg'); 
     bgMusic.loop = true; bgMusic.volume = 0.3;
     
-    const coinSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3'); 
+    const coinSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/b/b5/Radioactive_chime.wav'); 
     coinSfx.volume = 0.5;
     
-    const powerSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-mighty-mystical-sword-cast-2121.mp3'); 
+    const powerSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/c/c2/Magic_Wand_Noise.ogg'); 
     powerSfx.volume = 0.7;
     
-    const hitSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-with-glass-debris-1701.mp3'); 
+    const hitSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/3/3d/Crates_break1.ogg'); 
     hitSfx.volume = 0.6;
 
     const rulesI18n = {
