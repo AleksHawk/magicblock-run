@@ -13,18 +13,49 @@
     document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
     document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) { e.preventDefault(); } });
 
-    // 🎵 АУДІО ТА ЗВУКОВІ ЕФЕКТИ (Надійні посилання Wikimedia)
-    const bgMusic = new Audio('https://upload.wikimedia.org/wikipedia/commons/6/6c/Kevin_MacLeod_-_8bit_Dungeon_Boss.ogg'); 
-    bgMusic.loop = true; bgMusic.volume = 0.3;
-    
-    const coinSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/b/b5/Radioactive_chime.wav'); 
-    coinSfx.volume = 0.5;
-    
-    const powerSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/c/c2/Magic_Wand_Noise.ogg'); 
-    powerSfx.volume = 0.7;
-    
-    const hitSfx = new Audio('https://upload.wikimedia.org/wikipedia/commons/3/3d/Crates_break1.ogg'); 
-    hitSfx.volume = 0.6;
+    // 🎵 МАГІЧНИЙ СИНТЕЗАТОР ЗВУКІВ (Працює на 100% скрізь, генерується кодом)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playMagicSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        
+        if (type === 'coin') {
+            // Дзвіньк збору логотипу
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now); osc.stop(now + 0.1);
+        } else if (type === 'power') {
+            // Активація Суперсили (Блінк)
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(1000, now + 0.4);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc.start(now); osc.stop(now + 0.4);
+        } else if (type === 'hit') {
+            // Врізався
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now); osc.stop(now + 0.3);
+        }
+    }
+
+    // Фонова музика (Надійний CDN, формат MP3 підтримується скрізь)
+    const bgMusic = new Audio('https://cdn.jsdelivr.net/gh/Ansimuz/retro-music-pack/mp3/retro-platforming.mp3'); 
+    bgMusic.loop = true; bgMusic.volume = 0.25;
 
     const rulesI18n = {
         en: { title: "rules:", r1: "hold space or touch to fly", r2: "collect 5 logos for superpower", r3: "avoid dark rifts", r4: "during superpower you are invincible!" },
@@ -72,9 +103,6 @@
             } else if (lbList) { 
                 lbList.innerHTML = '<div class="lb-wait">no records yet. be the first!</div>'; 
             }
-        }, (error) => {
-            console.error("Firebase read error:", error);
-            document.getElementById('lb-list').innerHTML = '<div class="lb-wait">error loading leaderboard</div>';
         });
     }
     loadGlobalBest();
@@ -128,9 +156,10 @@
         isLive = true; _gameStartTime = performance.now(); _lastFrameTime = _gameStartTime;
         document.getElementById('ss-foot-text').innerText = `can you beat ${currentPlayerName}'s magic?`;
         
-        // 🎵 Запуск музики
+        // 🎵 Запуск аудіо
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         bgMusic.currentTime = 0; 
-        bgMusic.play().catch(e => console.log("Браузер блокує автоплей музики", e));
+        bgMusic.play().catch(e => console.log("Автоплей відкладено до взаємодії", e));
         
         requestAnimationFrame(loop);
     }
@@ -165,7 +194,7 @@
         
         // 🎵 Звук смерті та зупинка музики
         bgMusic.pause();
-        hitSfx.currentTime = 0; hitSfx.play().catch(()=>{});
+        playMagicSound('hit');
         
         for(let i=0; i<80; i++) {
             let color = Math.random() > 0.5 ? '#8a2be2' : '#ff00ff';
@@ -279,7 +308,7 @@
                     let bonus = feverMode ? 40 : 15; score += bonus; _shadowScore += bonus;
                     
                     // 🎵 Звук збору
-                    coinSfx.currentTime = 0; coinSfx.play().catch(()=>{});
+                    playMagicSound('coin');
 
                     if (!feverMode) {
                         energy++;
@@ -290,7 +319,7 @@
                             createParticles(p.x + p.w/2, p.y + p.h/2, "#ffffff", 80, 3);
                             
                             // 🎵 Звук магічної суперсили
-                            powerSfx.currentTime = 0; powerSfx.play().catch(()=>{});
+                            playMagicSound('power');
                         } else { energyEl.innerText = `mana: ${energy}/5`; }
                     }
                     if(navigator.vibrate) navigator.vibrate(40); createParticles(st.x + st.w/2, st.y + st.h/2, "#00ffff", 15);
