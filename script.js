@@ -349,8 +349,8 @@
         html2canvas(document.getElementById('ss-export'), { backgroundColor: "#0a0014", scale: 2, logging: false }).then(canvas => { const link = document.createElement('a'); link.download = 'magicblock-run-record.png'; link.href = canvas.toDataURL('image/png'); link.click(); this.innerText = "saved!"; setTimeout(() => this.innerText = originalText, 2000); });
     };
 
-    document.getElementById('btn-x').onclick = function() {
-        const txt = encodeURIComponent(`пройшов челендж від @hawk_tyt 🔮\nмій маг набрав: ${Math.floor(score)} балів\nзроблено для ком'юніті @magicblock 💜\nзможеш побити мій рекорд? https://alekshawk.github.io/magicblock-run/`);
+   document.getElementById('btn-x').onclick = function() {
+        const txt = encodeURIComponent(`completed the challenge from @hawk_tyt 🔮\nmy mage scored: ${Math.floor(score)} points\nmade for the @magicblock community 💜\ncan you beat my record? https://alekshawk.github.io/magicblock-run/`);
         window.open(`https://twitter.com/intent/tweet?text=${txt}`, '_blank');
     };
 })();
