@@ -350,7 +350,7 @@
     };
 
     document.getElementById('btn-x').onclick = function() {
-        const txt = encodeURIComponent(`casting spells in a challenge from @hawk_tyt! 🔮\nmy mage (${currentPlayerName}) reached: ${Math.floor(score)} points ⚡\ncrafted for the @magicblock community 💜\n\ntry to beat it: https://alekshawk.github.io/magicblock-run/\n\ni summon: @`);
+        const txt = encodeURIComponent(`пройшов челендж від @hawk_tyt 🔮\nмій маг набрав: ${Math.floor(score)} балів\nзроблено для ком'юніті @magicblock 💜\nзможеш побити мій рекорд? https://alekshawk.github.io/magicblock-run/`);
         window.open(`https://twitter.com/intent/tweet?text=${txt}`, '_blank');
     };
 })();
